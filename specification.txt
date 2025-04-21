@@ -1,0 +1,31 @@
+# P2P Network Television Simulator
+
+Network television is an application that allows watching live video broadcasts via the Internet. Common network TV clients can run on ordinary PCs, mobile devices, or set-top boxes. Currently popular software includes PPTV, Tencent Video, LeTV, and others.
+
+Traditional network television adopts a Client-Server (C/S) architecture, where all clients establish a connection with the server and request video data. In this architecture, the server's load and the number of clients are linearly proportional; as the number of users grows, operational costs increase sharply. To address server bottlenecks, a Peer-to-Peer (P2P) architecture has been proposed and widely adopted. In a P2P-based network TV system, clients establish connections with each other and share downloaded video data. Each client can download video data from other clients, cache a certain amount of video data, and also provide cached data to others. Through this "everyone for me, me for everyone" approach, leveraging the network transmission capacity among clients, the server load is greatly reduced.
+
+Optimizing P2P networks to maximize the quality of viewing experience for TV clients is an important research topic. When studying P2P network optimization strategies, it is often necessary to simulate the P2P network and observe how various strategies impact user experience. Please implement a P2P network TV simulator based on the following requirements.
+
+---
+
+### Data Configuration:
+- The P2P network can be abstracted as a graph, where the server and each network TV client are represented as vertices, and network connections are edges.
+- Design an algorithm to generate simulation data:
+  - a) The network contains **N** client vertices (N ≥ 100), plus 1 server vertex. Each client/server is assigned a coordinate (x, y) in a 2D plane to describe its geographic location.
+  - b) Each client or server randomly selects **t** other clients or the server to establish network connections with.
+  - c) The transmission rate between any two vertices is inversely proportional to the distance between them. The transmission rate ranges from [20 KByte/s, 100 KByte/s].
+  - d) The server produces video data of 30 KByte per second. The video data is divided into equal-sized data blocks, each 1 KByte in size. Each data block has a globally unique integer sequence number, reflecting the order of data generation: e.g., the first data block has sequence number 1, the second has 2, and so on.
+  - e) Each client periodically checks the sequence numbers of data blocks held by neighbors and requests the data blocks it does not have. Upon receiving a request, neighbors will send the corresponding data block to the requester (ignoring the transmission time for requests in this simulation).
+  - f) A client can play continuously if it has **M** consecutive data blocks (M ≥ 5). That is, to play data block **i**, the client must have data blocks **i**, **i+1**, ..., **i+M-1**.
+  - g) Each client can cache **N** data blocks (N is configurable). The client maintains a queue of length N; new data blocks replace the oldest ones when new blocks arrive.
+
+---
+
+### Functional Requirements:
+- **F1. Network Visualization:** Display the positions of all clients and the server, as well as the connections between them. (For drawing, you can refer to resources on Baidu or Google, or relevant books.)
+- **F2. Network Zoom:** Ability to zoom in and out of the network display area.
+- **F3. Simulate Video Data Stream:** Based on the above data configuration, simulate the server generating video blocks and clients requesting data blocks from neighbors. Evaluate the smoothness of playback (defined as the proportion of continuous playback time over total time). (Hint: use discrete event simulation with queues, or research network simulation methods online.)
+- **F4. Test Client Playback Delay:** The delay = (playback time of a data block) – (generation time of that data block on the server).
+- **F5. Design Better Network Construction Schemes:** Considering node transmission rates and distances, improve the network structure to reduce client playback delay and improve smoothness.
+- **F6. Simulate Node Exit Impact:** Remove **R** client nodes (R < N) from the network and observe how this affects other clients' playback delay and smoothness.
+- **F7. Neighbor Update Strategy:** When neighbors exit, each node establishes new connections based on a predefined strategy. Provide your specific strategy and test its effectiveness.
