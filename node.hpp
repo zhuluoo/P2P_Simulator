@@ -16,9 +16,15 @@ public:
 class Server: private Node {
 public:
 	Server(int,double,double);   //configuration
+    int getid();
+    int getx();
+    int gety();
 };	
 
 class Client : private Node {
 public:
 	Client(int,double,double);   //configuration
+    int getid();
+    int getx();
+    int gety();
 };	
