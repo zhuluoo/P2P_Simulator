@@ -6,6 +6,14 @@ Server::Server(int nid, double nx, double ny) : Node(nid, nx, ny){}
 
 Client::Client(int nid, double nx, double ny) : Node(nid, nx, ny) {}
 
+void Server:: addNeighbor(int id) {
+    Node.neighbors.push_back(id):
+}
+
+void Client:: addNeighbor(int id) {
+    Node.neighbors.push_back(id):
+}
+
 int Server:: getid() {
     return Node.id;
 }
