@@ -41,6 +41,17 @@ void Network:: init(int numC, int numN) {
         }
     }
 }
+// Set neighbors for the server node (id 0)
+    std::vector<bool> checkn_server(numC + 1, false); // Initialize a vector to avoid duplicate neighbor IDs for the server
+    for (int i = 0; i < numNeighbor; ++i) {
+        int neighborId;
+        std::uniform_int_distribution<> nid(1, numC); // Neighbor ID 范围是 1 到 numC
+        do {
+            neighborId = nid(gen()); // 生成随机邻居ID
+        } while (checkn_server[neighborId] == true);  //
+        checkn_server[neighborId] = true;
+        nodes[0].addneighbor(neighborId); // 添加到服务器 (id 0) 的邻居列表
+    }
 
 double Network:: distance(const Node& a, const Node& b) {
     double distance;
