@@ -7,33 +7,41 @@ Server::Server(int nid, double nx, double ny) : Node(nid, nx, ny){}
 Client::Client(int nid, double nx, double ny) : Node(nid, nx, ny) {}
 
 void Server:: addNeighbor(int id) {
-    Node.neighbors.push_back(id):
+    neighbors.push_back(id);
 }
 
 void Client:: addNeighbor(int id) {
-    Node.neighbors.push_back(id):
+    neighbors.push_back(id);
 }
 
-int Server:: getid() {
-    return Node.id;
+int Server:: getid() const {
+    return id;
 }
 
-int Client:: getid() {
-    return Node.id;
+int Client:: getid() const {
+    return id;
 }
 
-double Server:: getx() {
-    return Node.x;
+double Server:: getx() const {
+    return x;
 }
 
-double Client:: gety() {
-    return Node.y;
+double Client:: getx() const {
+    return x;
 }
 
-double Server:: getx() {
-    return Node.x;
+double Server:: gety() const {
+    return y;
 }
 
-double Client:: gety() {
-    return Node.y;
+double Client:: gety() const {
+    return y;
+}
+
+size_t Server:: getNumNeighbor() const {
+    return neighbors.size();
+}
+
+size_t Client:: getNumNeighbor() const {
+    return neighbors.size();
 }
