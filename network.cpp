@@ -1,6 +1,5 @@
 #include "network.hpp"
 #include <random>
-#include <iostream>
 
 void Network:: init(int numC, int numN) {
     numClient = numC;
@@ -44,9 +43,19 @@ void Network:: init(int numC, int numN) {
     // add neighbors
     for (int i = 0; i < numClient + 1; ++i) {
         std::vector<int> checkn(numClient + 1, 0);  // avoid duplicates
-        for (int j = 0; j < numNeighbor - nodes[i]->getNumNeighbor(); ++j) {  // this is a undirected graph, so neighbor relation is mutual
+        int numAddNeighbor = numNeighbor - nodes[i]->getNumNeighbor();
+        for (int j = 0; j < numAddNeighbor; ++j) {  // this is a undirected graph, so neighbor relation is mutual
             int neighborId;
-            do { neighborId = nid(gen); } while (checkn[neighborId] == 1 || matrix[i][neighborId] != 0);
+            int guard = numClient * 100;  // avoid adding invalid neighbors
+            do {
+                neighborId = nid(gen);
+                if (--guard == 0) {
+                    // std::cerr << "[WARN] Node " << i << ": Cannot find a neighbor anymore!\n";
+                    break;
+                }
+            } while (checkn[neighborId] == 1 || matrix[i][neighborId] != 0 || neighborId == i || nodes[neighborId]->getNumNeighbor() >= numNeighbor);
+
+            if (guard == 0) break;
             checkn[neighborId] = 1;
             
             nodes[i]->addNeighbor(neighborId);

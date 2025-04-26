@@ -1,7 +1,7 @@
-#include<iostream>
-using namespace std;
+#include "network.hpp"
 
 int main(){
-cout << "Hello World" << endl;
+    Network n;
+    n.init(100, 10);
 return 0;
 }

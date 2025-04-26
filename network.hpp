@@ -11,7 +11,7 @@ private:
 
     int numServer = 1;
     int numClient = 0;  // default value, it should be >= 100
-    int numNeighbor = 0;  // default value
+    int numNeighbor = 0;  // default value, in real case, it's max number of neighbors actually
 public:
     Network(){};
 	void init(int numClient, int numNeighbor);  //initialization
