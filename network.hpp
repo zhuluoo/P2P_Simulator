@@ -12,10 +12,10 @@ private:
     int numServer = 1;
     int numClient = 0;  // default value, it should be >= 100
     int numNeighbor = 0;  // default value, in real case, it's max number of neighbors actually
-    void setNeighbor();     
+    void setNeighbors();
 public:
     Network(){};
 	void init(int numClient, int numNeighbor);  //initialization
-	double distance(const Node* const a, const Node* const b); //compute distance between nodes
+	double distance(const Node* const a, const Node* const b) const; //compute distance between nodes
     ~Network();
 };

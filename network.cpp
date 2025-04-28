@@ -1,35 +1,27 @@
 #include "network.hpp"
 #include <random>
 
-
-//Utility: Euclidean distance 
-double Network::distance(const Node* a, const Node* b) const
-{
-    double dx = a->getx() - b->getx();
-    double dy = a->gety() - b->gety();
-    return std::sqrt(dx * dx + dy * dy);
-}
-
 void Network:: init(int numC, int numN) {
     numClient = numC;
     numNeighbor = numN;
 
+    // clear remaining content
     for (Node* ptr : nodes) delete ptr;
     nodes.clear();
     matrix.clear();
 
+    // random settings
     int netBound = numClient * 10;   // set biggest coordinates
     std::random_device rd;
     std::mt19937 gen(rd());
-    // simplify the random generation to be int, and the coordinate range is 0 to netBound
-    std::uniform_int_distribution<> posDist(0, netBound);   // for coordinates
+    std::uniform_int_distribution<> posDist(0, netBound);   // for coordinates. simplified to int
     std::uniform_int_distribution<> nid(0, numClient);  // random neighbor id
 
     // occupancy table to avoid duplicate positions 
     std::vector<std::vector<char>> occupied(netBound + 1, std::vector<char>(netBound + 1, 0));
    
     // create server node
-    double x,y;
+    double x, y;
     do { x = posDist(gen); y = posDist(gen); } while (occupied[x][y]);
     occupied[x][y] = 1;
     
@@ -44,26 +36,28 @@ void Network:: init(int numC, int numN) {
         } while (occupied[x][y]);
        occupied[x][y] = 1;
 
-        nodes.push_back(new Client(i, static_cast<double>(cx), static_cast<double>(cy)));  // create and push clients, let i be client's id, x and y just be random value
+        nodes.push_back(new Client(i, static_cast<double>(x), static_cast<double>(y)));  // create and push clients, let i be client's id, x and y just be random value
     }
+
+    // set neighbors
     setNeighbors();
 }
 
-    // set neighbors
-void Network::setNeighbors()
-{
-   matrix.assign(numClient + 1,std::vector<double>(numClient + 1, 0.0));
+void Network::setNeighbors() {
+    // initialize adjacency matrix
+    matrix.assign(numClient + 1,std::vector<double>(numClient + 1, 0.0));
  
-    //random undirected edges (degree ≤ numNeighbor) 
+    // generate consecutive id 0,1,2,...,numClient
     std::vector<int> idList(numClient + 1);
-    std::iota(idList.begin(), idList.end(), 0);
+    for (int i = 0; i < numClient + 1; ++i) idList.push_back(i);
 
- std::random_device rd; std::mt19937 gen(rd());
+    // random settings
+    std::random_device rd;
+    std::mt19937 gen(rd());
 
-     auto addEdge = [&](int u, int v)
-    {
-        if (matrix[u][v] != 0)                                return; // already linked
-        if (nodes[u]->getNumNeighbor() >= numNeighbor)        return;
+    auto addEdge = [&](int u, int v) {
+        if (matrix[u][v] != 0)                                return;  // already linked
+        if (nodes[u]->getNumNeighbor() >= numNeighbor)        return;  // neighbor full
         if (nodes[v]->getNumNeighbor() >= numNeighbor)        return;
 
         // distance → bandwidth : 20 KB/s … 100 KB/s (linear inverse) 
@@ -78,7 +72,7 @@ void Network::setNeighbors()
     };
 
     // two sweeps are usually enough to fill the degree quotas 
-    for (int sweep = 0; sweep < 2; ++sweep)
+    for (int sweep = 0; sweep < 2; ++sweep) {
         for (int u = 0; u <= numClient; ++u) {
             std::shuffle(idList.begin(), idList.end(), gen);
             for (int v : idList) {
@@ -87,6 +81,7 @@ void Network::setNeighbors()
                 addEdge(u, v);
             }
         }
+    }
 
     //  ensure every node can reach the server (connectivity check) 
     std::vector<char> vis(numClient + 1, 0);
@@ -111,6 +106,13 @@ void Network::setNeighbors()
             addEdge(u, v);
             vis[u] = 1;                           // now reachable
         }
+}
+
+//Utility: Euclidean distance 
+double Network::distance(const Node* const a, const Node* const b) const {
+    double dx = a->getx() - b->getx();
+    double dy = a->gety() - b->gety();
+    return std::sqrt(dx * dx + dy * dy);
 }
 
 Network:: ~Network() {
