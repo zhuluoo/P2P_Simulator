@@ -1,77 +1,116 @@
 #include "network.hpp"
 #include <random>
 
+
+//Utility: Euclidean distance 
+double Network::distance(const Node* a, const Node* b) const
+{
+    double dx = a->getx() - b->getx();
+    double dy = a->gety() - b->gety();
+    return std::sqrt(dx * dx + dy * dy);
+}
+
 void Network:: init(int numC, int numN) {
     numClient = numC;
     numNeighbor = numN;
 
-    int netBound = numC * 10;  // set biggest coordinates
+    for (Node* ptr : nodes) delete ptr;
+    nodes.clear();
+    matrix.clear();
+
+    int netBound = numClient * 10;   // set biggest coordinates
     std::random_device rd;
     std::mt19937 gen(rd());
     // simplify the random generation to be int, and the coordinate range is 0 to netBound
-    std::uniform_int_distribution<> intDist(0, netBound);  // gives an even, random spread across the 2D space.
+    std::uniform_int_distribution<> posDist(0, netBound);   // for coordinates
     std::uniform_int_distribution<> nid(0, numClient);  // random neighbor id
 
-    std::vector<std::vector<int>> check(netBound + 1, std::vector<int>(netBound + 1, 0));  // avoid duplicates of coordinates
-
+    // occupancy table to avoid duplicate positions 
+    std::vector<std::vector<char>> occupied(netBound + 1, std::vector<char>(netBound + 1, 0));
+   
     // create server node
-    double x = static_cast<double>(intDist(gen));
-    double y = static_cast<double>(intDist(gen));
-    check[x][y] = 1;
-    server = new Server(0, x, y);
+    double x,y;
+    do { x = posDist(gen); y = posDist(gen); } while (occupied[x][y]);
+    occupied[x][y] = 1;
+    
+    server = new Server(0, static_cast<double>(x), static_cast<double>(y));
     nodes.push_back(server);  // server node, id 0 
 
     // create client node
-    for(int i = 1; i <= numC; ++i) {
+    for(int i = 1; i <= numClient; ++i) {
         double x, y;
         do {
-            x = static_cast<double>(intDist(gen));
-            y = static_cast<double>(intDist(gen));
-        } while (check[x][y] == 1);
-        check[x][y] = 1;
+           x = posDist(gen); y = posDist(gen); 
+        } while (occupied[x][y]);
+       occupied[x][y] = 1;
 
-        nodes.push_back(new Client(i, x, y));  // create and push clients, let i be client's id, x and y just be random value
+        nodes.push_back(new Client(i, static_cast<double>(cx), static_cast<double>(cy)));  // create and push clients, let i be client's id, x and y just be random value
     }
-
-
-
-    // set neighbors
-    // initialize adjacency matrix
-    for (int i = 0; i < numClient + 1; ++i) {
-        matrix.push_back(std::vector<double>(numClient + 1 , 0));
-    }
-    // add neighbors
-    for (int i = 0; i < numClient + 1; ++i) {
-        std::vector<int> checkn(numClient + 1, 0);  // avoid duplicates
-        int numAddNeighbor = numNeighbor - nodes[i]->getNumNeighbor();
-        for (int j = 0; j < numAddNeighbor; ++j) {  // this is a undirected graph, so neighbor relation is mutual
-            int neighborId;
-            int guard = numClient * 100;  // avoid adding invalid neighbors
-            do {
-                neighborId = nid(gen);
-                if (--guard == 0) {
-                    // std::cerr << "[WARN] Node " << i << ": Cannot find a neighbor anymore!\n";
-                    break;
-                }
-            } while (checkn[neighborId] == 1 || matrix[i][neighborId] != 0 || neighborId == i || nodes[neighborId]->getNumNeighbor() >= numNeighbor);
-
-            if (guard == 0) break;
-            checkn[neighborId] = 1;
-            
-            nodes[i]->addNeighbor(neighborId);
-            nodes[neighborId]->addNeighbor(i);
-            
-            matrix[i][neighborId] = distance(nodes[i] , nodes[neighborId]);
-            matrix[neighborId][i] = distance(nodes[i] , nodes[neighborId]);
-        }
-    }
-
+    setNeighbors();
 }
 
-double Network:: distance(const Node* const a, const Node* const b) {
-    double distance;
-    distance = sqrt( pow( (a->getx() - b->getx()) , 2 ) + pow( (a->gety() - b->gety()) , 2) );
-    return distance;
+    // set neighbors
+void Network::setNeighbors()
+{
+   matrix.assign(numClient + 1,std::vector<double>(numClient + 1, 0.0));
+ 
+    //random undirected edges (degree ≤ numNeighbor) 
+    std::vector<int> idList(numClient + 1);
+    std::iota(idList.begin(), idList.end(), 0);
+
+ std::random_device rd; std::mt19937 gen(rd());
+
+     auto addEdge = [&](int u, int v)
+    {
+        if (matrix[u][v] != 0)                                return; // already linked
+        if (nodes[u]->getNumNeighbor() >= numNeighbor)        return;
+        if (nodes[v]->getNumNeighbor() >= numNeighbor)        return;
+
+        // distance → bandwidth : 20 KB/s … 100 KB/s (linear inverse) 
+        double d    = distance(nodes[u], nodes[v]);
+        double dMax = std::sqrt(2.0) * numClient * 10;           // diagonal of area
+        double rate = 20.0 + (100.0 - 20.0) *
+                      (1.0 - std::min(d, dMax) / dMax);
+
+        matrix[u][v] = matrix[v][u] = rate;
+        nodes[u]->addNeighbor(v);
+        nodes[v]->addNeighbor(u);
+    };
+
+    // two sweeps are usually enough to fill the degree quotas 
+    for (int sweep = 0; sweep < 2; ++sweep)
+        for (int u = 0; u <= numClient; ++u) {
+            std::shuffle(idList.begin(), idList.end(), gen);
+            for (int v : idList) {
+                if (u == v) continue;
+                if (nodes[u]->getNumNeighbor() >= numNeighbor) break;
+                addEdge(u, v);
+            }
+        }
+
+    //  ensure every node can reach the server (connectivity check) 
+    std::vector<char> vis(numClient + 1, 0);
+    std::queue<int>   q;
+    q.push(0); vis[0] = 1;                        // BFS from server
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        for (int v : nodes[u]->neighbors)
+            if (!vis[v]) { vis[v] = 1; q.push(v); }
+    }
+
+    //spare nodes: already connected to server and still have free degree 
+    std::vector<int> spare;
+    for (int i = 0; i <= numClient; ++i)
+        if (vis[i] && nodes[i]->getNumNeighbor() < numNeighbor)
+            spare.push_back(i);
+
+    for (int u = 1; u <= numClient; ++u)          // skip server itself
+        if (!vis[u]) {
+            int v = spare.empty() ? 0 : spare.back(); // fallback: link directly to server
+            if (!spare.empty()) spare.pop_back();
+            addEdge(u, v);
+            vis[u] = 1;                           // now reachable
+        }
 }
 
 Network:: ~Network() {
