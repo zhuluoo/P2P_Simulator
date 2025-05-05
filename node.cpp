@@ -1,10 +1,11 @@
 #include "node.hpp"
 
-Node::Node(int nid, double nx, double ny) : id(nid), x(nx), y(ny) {}
+Node::Node(int nid, double nx, double ny, int bufSize) : id(nid), x(nx), y(ny), buffer(bufSize) {}
 
-Server::Server(int nid, double nx, double ny) : Node(nid, nx, ny){}
+Server::Server(int nid, double nx, double ny, int bufSize) : Node(nid, nx, ny, bufSize) {}
 
-Client::Client(int nid, double nx, double ny) : Node(nid, nx, ny) {}
+Client::Client(int nid, double nx, double ny, int bufSize) : Node(nid, nx, ny, bufSize) {}
+
 
 void Server:: addNeighbor(int id) {
     neighbors.push_back(id);
@@ -13,6 +14,16 @@ void Server:: addNeighbor(int id) {
 void Client:: addNeighbor(int id) {
     neighbors.push_back(id);
 }
+
+
+void Server:: recvBlock(const DataBlock& block) {
+    buffer.addBlock(block);
+}
+
+void Client:: recvBlock(const DataBlock& block) {
+    buffer.addBlock(block);
+}
+
 
 int Server:: getid() const {
     return id;

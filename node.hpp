@@ -2,17 +2,21 @@
 
 #include<vector>
 #include<string>
+#include "videpdata.hpp"
 
 class Node {
 protected:
 	int id;
 	double x, y;   //coordinate
 	std::vector<int> neighbors;  // store neighbors' id
+    Cache buffer;  // cache
 public:
-	Node(int,double,double);   //configuration
+	Node(int id, double x, double y, int bufSize);   //configuration
 	virtual ~Node() = default;
     
     virtual void addNeighbor(int) = 0;
+    virtual void recvBlock(const DataBlock&) = 0;
+
     virtual int getid() const = 0;
     virtual double getx() const = 0;
     virtual double gety() const = 0;
@@ -21,9 +25,11 @@ public:
 
 class Server: public Node {
 public:
-	Server(int,double,double);   //configuration
+	Server(int id, double x, double y, int bufSize);   //configuration
 
     void addNeighbor(int) override;
+    void recvBlock(const DataBlock&) override;
+
     int getid() const override;
     double getx() const override;
     double gety() const override;
@@ -32,9 +38,10 @@ public:
 
 class Client : public Node {
 public:
-	Client(int,double,double);   //configuration
+	Client(int id, double x, double y, int bufSize);   //configuration
 
     void addNeighbor(int) override;
+    void recvBlock(const DataBlock&) override;
     int getid() const override;
     double getx() const override;
     double gety() const override;
