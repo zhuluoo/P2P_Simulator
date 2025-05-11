@@ -2,7 +2,7 @@
 
 Node::Node(int nid, double nx, double ny, int bufSize) : id(nid), x(nx), y(ny), buffer(bufSize) {}
 
-Server::Server(int nid, double nx, double ny, int bufSize) : Node(nid, nx, ny, bufSize) {}
+Server::Server(int nid, double nx, double ny, int bufSize) : Node(nid, nx, ny, 30) {}  // set Server's bufSize euqal to the data size it produces per second
 
 Client::Client(int nid, double nx, double ny, int bufSize) : Node(nid, nx, ny, bufSize) {}
 

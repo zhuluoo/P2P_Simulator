@@ -1,7 +1,7 @@
 #include "network.hpp"
 #include <random>
 
-void Network:: init(int numC, int numN) {
+void Network:: init(int numC, int numN, int bufSize) {
     numClient = numC;
     numNeighbor = numN;
 
@@ -18,7 +18,7 @@ void Network:: init(int numC, int numN) {
     double x = static_cast<double>(intDist(gen));
     double y = static_cast<double>(intDist(gen));
     check[x][y] = 1;
-    server = new Server(0, x, y);
+    server = new Server(0, x, y, bufSize);
     nodes.push_back(server);  // server node, id 0 
 
     // create client node
@@ -30,7 +30,7 @@ void Network:: init(int numC, int numN) {
         } while (check[x][y] == 1);
         check[x][y] = 1;
 
-        nodes.push_back(new Client(i, x, y));  // create and push clients, let i be client's id, x and y just be random value
+        nodes.push_back(new Client(i, x, y, bufSize));  // create and push clients, let i be client's id, x and y just be random value
     }
 
 

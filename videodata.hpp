@@ -1,7 +1,6 @@
 #pragma once
 
 #include <deque>
-#include <unordered_set>
 
 struct DataBlock {
 	int seqNum;
