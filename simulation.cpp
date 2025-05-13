@@ -3,24 +3,47 @@
 Simulation:: Simulation(Network& n) : net(n) {
     curTime = 0.0;
     blockSeq = 0;
-    requestedBlocks.resize(n.nodes.size() - 1);
+    requestedBlocks.resize(n.nodes.size());
 }
 
-void Simulation:: run(double maxTime) {
-    auto cmp = [](const Event& a, const Event& b) {
-        return a.time < b.time;
-    }
-    std::priority_queue<Event , std::vector<Event> , decltype(cmp) > eventQueue(cmp);  // process event in sequence of time
+void Simulation:: run() {
+    // system time setting
+    const double timeStep = 0.01;  // use a time-stepped model, loop every 0.1 second
+    curTime = 0.0;
+    // tracking Server production
+    const double blockInterval = 1.0 / 30.0;
+    double nextBlockTime = 0.0;
 
-// Server produces blocks
-// Clients request blocks from neighbors
-// Clients receive blocks (with delay)
-// Clients try to play
-}
+    while (curTime < totalTime) {
+        // Server produces blocks
+        if (curTime >= nextBlockTime) {
+            DataBlock block{blockSeq++ , curTime};
+            net.nodes[0] -> recvBlock(block);
+            nextBlockTime += blockInterval;
+        }
 
-void Simulation:: gen1SecData(int startTime) {
-    for (int i = 0; i < 30; ++i) {
-        DataBlock block = {blockSeq++, startTime + i / 30.0};
-        net.server.recvBlock(block);
+        // Deliver packets
+        for (auto it = transmissionQueue.begin(); it != transmissionQueue.end(); ) {
+            // if delivery time comes, diliver block
+            if(std::abs(it->deliveryTime - curTime) < 1e-6) {
+                net.nodes[it->toId].recvBlock(it->block);
+                requestedBlocks[it->toId].erase(it->block.seqNum);
+                it = transmissionQueue.erase(it);
+                } else { ++it; }
+        }
+
+        // Clients request and play
+        for (size_t i = 1; i < net.nodes.size(); ++i){
+            int cid = nodes[i] -> getid(); 
+            int needed = dynamic_cast<Client*>(nodes[i]) -> getNextPlaySeq();
+
+            if (requestedBlocks[cid].count(needed) == 0 && !(dynamic_cast<Client*>(nodes[i]) -> hasConsec(needed)))
+            {}
+
+            dynamic_cast<Client*>(nodes[i]) -> tryplay(curTime);
+        }
+
+        // time is ticking
+        curTime += timeStep;
     }
 }

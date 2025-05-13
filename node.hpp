@@ -37,13 +37,22 @@ public:
 };	
 
 class Client : public Node {
+private:
+    int nextPlaySeq = 0;
+    std::vector<double> playedBlocks;  // for computing delay
 public:
 	Client(int id, double x, double y, int bufSize);   //configuration
 
     void addNeighbor(int) override;
     void recvBlock(const DataBlock&) override;
+
     int getid() const override;
     double getx() const override;
     double gety() const override;
     size_t getNumNeighbor() const override;
+
+    // Client's unique functions
+    bool hasConsec(int start);
+    bool tryplay(double curTime);
+    int getNextPlaySeq();
 };	

@@ -2,7 +2,7 @@
 
 Node::Node(int nid, double nx, double ny, int bufSize) : id(nid), x(nx), y(ny), buffer(bufSize) {}
 
-Server::Server(int nid, double nx, double ny, int bufSize) : Node(nid, nx, ny, 30) {}  // set Server's bufSize euqal to the data size it produces per second
+Server::Server(int nid, double nx, double ny, int bufSize) : Node(nid, nx, ny, bufSize) {}  // set Server's bufSize euqal to the data size it produces per second
 
 Client::Client(int nid, double nx, double ny, int bufSize) : Node(nid, nx, ny, bufSize) {}
 
@@ -55,4 +55,22 @@ size_t Server:: getNumNeighbor() const {
 
 size_t Client:: getNumNeighbor() const {
     return neighbors.size();
+}
+
+
+bool Client:: hasConsec(int start) {
+    return buffer.hasConsecutives(start, 5);
+}
+
+bool Client:: tryplay(double curTime) {
+    if (buffer.hasConsecutives(nextPlaySeq, 5)) {
+        playedBlocks.push_back(curTime);
+        ++nextPlaySeq;
+        return true;
+    }
+    return false;
+}
+
+int Client:: getNextPlaySeq() {
+    return nextPlaySeq;
 }
