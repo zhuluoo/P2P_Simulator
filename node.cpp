@@ -57,9 +57,24 @@ size_t Client:: getNumNeighbor() const {
     return neighbors.size();
 }
 
+const std::vector<int>& Server:: getNeighbor() const {
+    return neighbors;
+}
 
-bool Client:: hasConsec(int start) {
-    return buffer.hasConsecutives(start, 5);
+const std::vector<int>& Client:: getNeighbor() const {
+    return neighbors;
+}
+
+const std::deque<DataBlock>& Server:: getBufferBlk() const {
+    return Buffer.blocks;
+}
+
+const std::deque<DataBlock>& Client:: getBufferBlk() const {
+    return Buffer.blocks;
+}
+
+bool Client:: hasConsec(int start, int count) {
+    return buffer.hasConsecutives(start, count);
 }
 
 bool Client:: tryplay(double curTime) {

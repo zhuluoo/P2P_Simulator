@@ -20,7 +20,10 @@ public:
     virtual int getid() const = 0;
     virtual double getx() const = 0;
     virtual double gety() const = 0;
+
     virtual size_t getNumNeighbor() const = 0;
+    virtual const std::vector<int>& getNeighbor() const = 0;
+    virtual const std::deque<DataBlock>& getBufferBlk() const = 0;
 };
 
 class Server: public Node {
@@ -33,8 +36,11 @@ public:
     int getid() const override;
     double getx() const override;
     double gety() const override;
+    
     size_t getNumNeighbor() const override;
-};	
+    const std::vector<int>& getNeighbor() const override;
+    const std::deque<DataBlock>& getBufferBlk() const override;
+}
 
 class Client : public Node {
 private:
@@ -49,10 +55,13 @@ public:
     int getid() const override;
     double getx() const override;
     double gety() const override;
+
     size_t getNumNeighbor() const override;
+    const std::vector<int>& getNeighbor() const override;
+    const std::deque<DataBlock>& getBufferBlk() const override;
 
     // Client's unique functions
-    bool hasConsec(int start);
+    bool hasConsec(int start, int count);
     bool tryplay(double curTime);
     int getNextPlaySeq();
 };	
