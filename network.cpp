@@ -25,7 +25,7 @@ void Network:: init(int numC, int numN) {
     do { x = posDist(gen); y = posDist(gen); } while (occupied[x][y]);
     occupied[x][y] = 1;
     
-    server = new Server(0, static_cast<double>(x), static_cast<double>(y));
+    server = new Server(0, static_cast<double>(x), static_cast<double>(y),30);
     nodes.push_back(server);  // server node, id 0 
 
     // create client node
@@ -36,7 +36,7 @@ void Network:: init(int numC, int numN) {
         } while (occupied[x][y]);
        occupied[x][y] = 1;
 
-        nodes.push_back(new Client(i, static_cast<double>(x), static_cast<double>(y)));  // create and push clients, let i be client's id, x and y just be random value
+        nodes.push_back(new Client(i, static_cast<double>(x), static_cast<double>(y), 30));  // create and push clients, let i be client's id, x and y just be random value
     }
 
     // set neighbors
@@ -89,7 +89,7 @@ void Network::setNeighbors() {
     q.push(0); vis[0] = 1;                        // BFS from server
     while (!q.empty()) {
         int u = q.front(); q.pop();
-        for (int v : nodes[u]->neighbors)
+        for (int v : nodes[u]->getNeighbor())
             if (!vis[v]) { vis[v] = 1; q.push(v); }
     }
 
