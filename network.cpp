@@ -44,44 +44,22 @@ void Network:: init(int numC, int numN) {
 }
 
 void Network::setNeighbors() {
-    // initialize adjacency matrix
-    matrix.assign(numClient + 1,std::vector<double>(numClient + 1, 0.0));
- 
-    // generate consecutive id 0,1,2,...,numClient
-    std::vector<int> idList(numClient + 1);
-    for (int i = 0; i < numClient + 1; ++i) idList.push_back(i);
+    matrix.assign(numClient + 1, std::vector<double>(numClient + 1, 0.0));
 
-    // random settings
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    // linear chain from server (id=0) to last client (id=numClient)
+    for (int i = 0; i < numClient; ++i) {
+        int u = i;
+        int v = i + 1;
 
-    auto addEdge = [&](int u, int v) {
-        if (matrix[u][v] != 0)                                return;  // already linked
-        if (nodes[u]->getNumNeighbor() >= numNeighbor)        return;  // neighbor full
-        if (nodes[v]->getNumNeighbor() >= numNeighbor)        return;
-
-        // distance → bandwidth : 20 KB/s … 100 KB/s (linear inverse) 
-        double d    = distance(nodes[u], nodes[v]);
-        double dMax = std::sqrt(2.0) * numClient * 10;           // diagonal of area
-        double rate = 20.0 + (100.0 - 20.0) *
-                      (1.0 - std::min(d, dMax) / dMax);
+        double d = distance(nodes[u], nodes[v]);
+        double dMax = std::sqrt(2.0) * numClient * 10;
+        double rate = 20.0 + (100.0 - 20.0) * (1.0 - std::min(d, dMax) / dMax);
 
         matrix[u][v] = matrix[v][u] = rate;
         nodes[u]->addNeighbor(v);
         nodes[v]->addNeighbor(u);
-    };
-
-    // two sweeps are usually enough to fill the degree quotas 
-    for (int sweep = 0; sweep < 2; ++sweep) {
-        for (int u = 0; u <= numClient; ++u) {
-            std::shuffle(idList.begin(), idList.end(), gen);
-            for (int v : idList) {
-                if (u == v) continue;
-                if (nodes[u]->getNumNeighbor() >= numNeighbor) break;
-                addEdge(u, v);
-            }
-        }
     }
+/*<<<<<<< HEAD
 
     //  ensure every node can reach the server (connectivity check) 
     std::vector<char> vis(numClient + 1, 0);
@@ -106,6 +84,8 @@ void Network::setNeighbors() {
             addEdge(u, v);
             vis[u] = 1;                           // now reachable
         }
+=======
+>>>>>>> def7579 (Modify setNeighbor) */
 }
 
 //Utility: Euclidean distance 
