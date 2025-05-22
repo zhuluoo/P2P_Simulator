@@ -22,6 +22,7 @@ void Server:: recvBlock(const DataBlock& block) {
 
 void Client:: recvBlock(const DataBlock& block) {
     buffer.addBlock(block);
+    ++neededSeq;
 }
 
 
@@ -66,11 +67,11 @@ const std::vector<int>& Client:: getNeighbor() const {
 }
 
 const std::deque<DataBlock>& Server:: getBufferBlk() const {
-    return Buffer.blocks;
+    return buffer.blocks;
 }
 
 const std::deque<DataBlock>& Client:: getBufferBlk() const {
-    return Buffer.blocks;
+    return buffer.blocks;
 }
 
 bool Client:: hasConsec(int start, int count) {
@@ -86,6 +87,6 @@ bool Client:: tryplay(double curTime) {
     return false;
 }
 
-int Client:: getNextPlaySeq() {
-    return nextPlaySeq;
+int Client:: getNeededSeq() {
+    return neededSeq;
 }

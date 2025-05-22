@@ -2,7 +2,7 @@
 
 #include<vector>
 #include<string>
-#include "videpdata.hpp"
+#include "videodata.hpp"
 
 class Node {
 protected:
@@ -40,11 +40,12 @@ public:
     size_t getNumNeighbor() const override;
     const std::vector<int>& getNeighbor() const override;
     const std::deque<DataBlock>& getBufferBlk() const override;
-}
+};
 
 class Client : public Node {
 private:
     int nextPlaySeq = 0;
+    int neededSeq = 0;
     std::vector<double> playedBlocks;  // for computing delay
 public:
 	Client(int id, double x, double y, int bufSize);   //configuration
@@ -63,5 +64,5 @@ public:
     // Client's unique functions
     bool hasConsec(int start, int count);
     bool tryplay(double curTime);
-    int getNextPlaySeq();
+    int getNeededSeq();
 };	

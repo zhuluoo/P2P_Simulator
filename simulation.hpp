@@ -1,18 +1,24 @@
 #pragma once
 
 #include "network.hpp"
-#include "videodata.hpp"
 #include <vector>
 #include <unordered_set>
 #include <cmath>
 #include <iostream>
 #include <algorithm>
 
+struct InTransitPacket {
+    int fromId;
+    int toId;
+    DataBlock block;
+    double deliveryTime;
+};
+
 class Simulation {
 private:
 	Network& net;
 	double curTime;  // current running time
-    double totalTime = 100.0;  // total running time---------------------------Modification needed----------------------------
+    double totalTime;  // total running time
     int blockSeq;  // globally unique integer sequence number, start from 0.
 
     std::vector<InTransitPacket> transmissionQueue;
@@ -20,13 +26,6 @@ private:
 public:
 	Simulation(Network& network);
 
-	void run();
+	void run(double totalT = 100.0);
 	void printResults();
 };
-
-struct InTransitPacket {
-    int fromId;
-    int toId;
-    DataBlock block;
-    double deliveryTime;
-}

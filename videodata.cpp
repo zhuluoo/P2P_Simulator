@@ -8,7 +8,7 @@ void Cache:: addBlock(const DataBlock& block) {
 }
 
 bool Cache:: hasConsecutives(int start, int count) {
-    int fount = 0;
+    int found = 0;
     for (const auto& blk : blocks) {
         if (blk.seqNum == start + found) ++found;
         if (found == count) return true;
