@@ -5,6 +5,7 @@ NodeCanvas::NodeCanvas(QWidget* parent) : QWidget(parent) {
     setMinimumSize(1000, 1000);
 }
 
+
 void NodeCanvas::setNet(const Network& net) {
     for ( const Node* pn : net.nodes) {
         nodes.push_back({pn->getid(), pn->getx(), pn->gety()});
@@ -15,28 +16,35 @@ void NodeCanvas::setNet(const Network& net) {
     update();  // trigger rapaint
 }
 
-void NodeCanvas::startPacket(int from, int to) {
-    activePackets.push_back({from, to, 0.0});
+
+void NodeCanvas::startPacket(int from, int to, int seq) {
+    activePackets.push_back({from, to, 0.0});  // add a new packet to be animated
+
+    // Creator a timer if one doesn't exist yet
     if(!animationTimer) {
         animationTimer = new QTimer(this);
+        // call updateAnimation when timer times out
         connect(animationTimer, &QTimer::timeout, this, &NodeCanvas::updateAnimation);
-        animationTimer->start(30);
+        animationTimer->start(10);  // every 10ms
     }
 }
+
 
 void NodeCanvas::updateAnimation() {
     bool anyRemaining = false;
 
     for(auto& pkt : activePackets) {
-        pkt.progress += 0.02;
+        pkt.progress += 0.02;  //  how fast the packet moves
         if(pkt.progress < 1.0) anyRemaining = true;
     }
 
+    // remove if transmission is done (progress >= 1.0)
     activePackets.erase(
         std::remove_if(activePackets.begin(), activePackets.end(),
             [](const AnimatedPacket& pkt){ return pkt.progress >= 1.0;}),
         activePackets.end());
 
+    // if there are no more packets, stop timer
     if (!anyRemaining && animationTimer) {
         animationTimer->stop();
         delete animationTimer;
@@ -45,6 +53,7 @@ void NodeCanvas::updateAnimation() {
 
     update();
 }
+
 
 void NodeCanvas::paintEvent(QPaintEvent*) {
     QPainter painter(this);
@@ -72,14 +81,15 @@ void NodeCanvas::paintEvent(QPaintEvent*) {
 
     // draw animated packets
     painter.setBrush(Qt::red);
-    for (const auto& pkt : activePackets) {
-        const auto& a = nodes[pkt.fromId];
-        const auto& b = nodes[pkt.toId];
+    for (const AnimatedPacket& pkt : activePackets) {
+        const GuiNode& a = nodes[pkt.fromId];
+        const GuiNode& b = nodes[pkt.toId];
         double x = a.x + (b.x - a.x) * pkt.progress;
         double y = a.y + (b.y - a.y) * pkt.progress;
         painter.drawEllipse(QPointF(x, y), 4, 4);
     }
 
 }
+
 
 NodeCanvas::~NodeCanvas(){}

@@ -1,6 +1,6 @@
 #include "simulation.hpp"
 
-Simulation:: Simulation(Network& n) : net(n) {
+Simulation:: Simulation(Network& n, NodeCanvas* nc) : net(n), canvas(nc) {
     curTime = 0.0;
     blockSeq = 0;
     requestedBlocks.resize(n.nodes.size());
@@ -38,6 +38,7 @@ void Simulation:: run(double t) {
             int cid = net.nodes[i] -> getid(); 
             int needed = dynamic_cast<Client*>(net.nodes[i]) -> getNeededSeq();
 
+            // if needed block hasn't transmitted yet
             if (requestedBlocks[cid].count(needed) == 0) {
                 int bestNeighbor = -1;
                 double bestDelay = std::numeric_limits<double>::max();
@@ -58,12 +59,17 @@ void Simulation:: run(double t) {
                         }
                     }
                 }
+                // if find neighbor with needed block
                 if (bestNeighbor != -1) {
                     transmissionQueue.push_back({bestNeighbor, cid, targetBlock, curTime + bestDelay});
                     requestedBlocks[cid].insert(needed);
+
+                    // Trigger animation (only if canvas exists)
+                    if (canvas) canvas->startPacket(bestNeighbor, cid, targetBlock.seqNum);
                 }
             }
 
+            // clients try to play
             dynamic_cast<Client*>(net.nodes[i]) -> tryplay(curTime);
         }
 

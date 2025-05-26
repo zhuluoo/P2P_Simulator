@@ -1,6 +1,7 @@
 #pragma once
 
 #include "network.hpp"
+#include "visualization.hpp"
 #include <vector>
 #include <unordered_set>
 #include <cmath>
@@ -17,6 +18,7 @@ struct InTransitPacket {
 class Simulation {
 private:
 	Network& net;
+    NodeCanvas* canvas;
 	double curTime;  // current running time
     double totalTime;  // total running time
     int blockSeq;  // globally unique integer sequence number, start from 0.
@@ -24,7 +26,7 @@ private:
     std::vector<InTransitPacket> transmissionQueue;
     std::vector<std::unordered_set<int>> requestedBlocks;
 public:
-	Simulation(Network& network);
+	Simulation(Network& network, NodeCanvas* canvas = nullptr);
 
 	void run(double totalT = 100.0);
 	void printResults();

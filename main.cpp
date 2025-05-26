@@ -9,9 +9,6 @@ int main(int argc, char* argv[]) {
     Network n;
     n.init(100, 5, 10);
 
-    // simulate
-    Simulation s(n);
-    s.run();
     
     // qt visualization
     QApplication app(argc, argv);
@@ -20,7 +17,9 @@ int main(int argc, char* argv[]) {
     canvas.setNet(n);
     canvas.show();
 
-    canvas.startPacket(0 , 3);
+    // simulate
+    Simulation s(n, &canvas);
+    s.run();
 
     return app.exec();
 }
