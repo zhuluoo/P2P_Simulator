@@ -9,6 +9,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QLabel>
+#include <QDialog>
 
 struct GuiNode {
     int id;
@@ -33,6 +34,8 @@ public:
     void addPacket(int seq, int fromId, int toId, double startTime, double deliveryTime);
     void startVisualization(double totalTime = 100.0, int slowFactor = 100);
 
+    void showDelayDialog();
+
 public slots:
     void togglePause();  // press Spacebar to pause and continue
     void zoomIn();  // press + or = to zoom in 
@@ -47,6 +50,7 @@ private slots:
     void updateAnimation();  // move active packets forward
 
 private:
+    const Network* net_ = nullptr;
     std::vector<GuiNode> nodes;
     std::vector<std::vector<double>> matrix; // adjaceney matrix
     std::vector<AnimatedPacket> allPackets;  // store transmission packet

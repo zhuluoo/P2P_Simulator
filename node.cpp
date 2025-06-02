@@ -90,3 +90,7 @@ bool Client:: tryplay(double curTime) {
 int Client:: getNeededSeq() {
     return neededSeq;
 }
+
+const std::vector<double>& Client::getPlayedBlk() const {
+    return playedBlocks;
+}

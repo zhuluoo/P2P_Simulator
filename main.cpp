@@ -7,6 +7,9 @@
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
 
+    // implement Network
+    Network n;
+
     // launch dialog window
     SimControlWindow setup;
     // viz sim canvas
@@ -15,13 +18,12 @@ int main(int argc, char* argv[]) {
     QObject::connect(&setup, &SimControlWindow::simulationStarted,
         [&](int numClients, int numNeighbors, int cacheSize) {
             // set Network
-            Network n;
             n.init(numClients, numNeighbors, cacheSize);
             canvas.setNet(n);
 
             canvas.show();
             
-            QLabel* help = new QLabel("Space: Pause | + / -: Zoom | Arrows: Move");
+            QLabel* help = new QLabel("Space: Pause | + / -: Zoom | Arrows: Move D: Check client delay");
             help->setStyleSheet("background-color: rgba(255,255,255,200); padding: 4px;");
             help->move(10, 100);
             help->setParent(&canvas);

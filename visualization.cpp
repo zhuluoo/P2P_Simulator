@@ -10,6 +10,7 @@ NodeCanvas::NodeCanvas(QWidget* parent) : QWidget(parent) {
 void NodeCanvas::setNet(const Network& net) {
     nodes.clear();
     matrix.clear();
+    net_ = &net;
     for ( const Node* pn : net.nodes) {
         nodes.push_back({pn->getid(), pn->getx(), pn->gety()});
     }
@@ -136,6 +137,9 @@ void NodeCanvas::keyPressEvent(QKeyEvent* event) {
             panOffset.ry() -= 20;
             update();
             break;
+        case Qt::Key_D:
+            showDelayDialog();
+            break;
         default:
             QWidget::keyPressEvent(event);
             break;
@@ -190,4 +194,45 @@ SimControlWindow::SimControlWindow(QWidget* parent) : QWidget(parent) {
         emit simulationStarted(clientSpin->value(), neighborSpin->value(), cacheSpin->value());
         this->close();
     });
+}
+
+void NodeCanvas::showDelayDialog() {
+    if (!net_) return;
+
+    QDialog dialog(this);
+    dialog.setWindowTitle("Check Client Delay");
+
+    QVBoxLayout* layout = new QVBoxLayout(&dialog);
+
+    QLabel* label = new QLabel("Client ID:");
+    QSpinBox* spin = new QSpinBox;
+    spin->setRange(1, net_->nodes.size() - 1);
+
+    QPushButton* checkBtn = new QPushButton("Check");
+    QLabel* resultLabel = new QLabel("");
+
+    layout->addWidget(label);
+    layout->addWidget(spin);
+    layout->addWidget(checkBtn);
+    layout->addWidget(resultLabel);
+
+    QObject::connect(checkBtn, &QPushButton::clicked, [&]() {
+        int cid = spin->value();
+        Node* client = net_->nodes[cid];
+        const auto& playedBlk = dynamic_cast<Client*>(client) -> getPlayedBlk();
+        if (playedBlk.empty()) {
+            resultLabel->setText("No blocks played.");
+            return;
+        }
+
+        double sum = 0;
+        for (int i = 0; i < playedBlk.size(); ++i) {
+            double expected = i / 30.0;
+            sum += playedBlk[i] - expected;
+        }
+        double avg = sum / playedBlk.size();
+        resultLabel->setText(QString("Average delay: %1 s").arg(avg, 0, 'f', 4));
+    });
+
+    dialog.exec();
 }

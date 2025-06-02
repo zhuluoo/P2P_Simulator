@@ -65,4 +65,5 @@ public:
     bool hasConsec(int start, int count);
     bool tryplay(double curTime);
     int getNeededSeq();
+    const std::vector<double>& getPlayedBlk() const;
 };	
