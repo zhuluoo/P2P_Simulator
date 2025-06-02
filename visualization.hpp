@@ -5,6 +5,10 @@
 #include <QTimer>
 #include <vector>
 #include <QKeyEvent>
+#include <QSpinBox>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QLabel>
 
 struct GuiNode {
     int id;
@@ -54,4 +58,19 @@ private:
     int slowFactor; // slow done speed factor
     double scale;  // zoom in and out scale
     QPointF panOffset = {0, 0}; // shift in logical space
+};
+
+// a launch dialog window
+class SimControlWindow : public QWidget {
+    Q_OBJECT
+
+public:
+    SimControlWindow(QWidget* parent = nullptr);
+
+signals:
+    void simulationStarted(int numClients, int numNeighbors, int cacheSize);
+
+private:
+    QSpinBox *clientSpin, *neighborSpin, *cacheSpin;
+    QPushButton *startBtn;
 };

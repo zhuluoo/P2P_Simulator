@@ -5,23 +5,36 @@
 #include <QApplication>
 
 int main(int argc, char* argv[]) {
-    // set network
-    Network n;
-    n.init(100, 5, 10);
-
-    
-    // qt visualization
     QApplication app(argc, argv);
-    
+
+    // launch dialog window
+    SimControlWindow setup;
+    // viz sim canvas
     NodeCanvas canvas;
-    canvas.setNet(n);
-    canvas.show();
 
-    // simulate
-    Simulation s(n, &canvas);
-    s.run();
+    QObject::connect(&setup, &SimControlWindow::simulationStarted,
+        [&](int numClients, int numNeighbors, int cacheSize) {
+            // set Network
+            Network n;
+            n.init(numClients, numNeighbors, cacheSize);
+            canvas.setNet(n);
 
-    canvas.startVisualization();
+            canvas.show();
+            
+            QLabel* help = new QLabel("Space: Pause | + / -: Zoom | Arrows: Move");
+            help->setStyleSheet("background-color: rgba(255,255,255,200); padding: 4px;");
+            help->move(10, 100);
+            help->setParent(&canvas);
+            help->show();
+
+            // simulate
+            Simulation s(n, &canvas);
+            s.run();
+
+            canvas.startVisualization();
+        });
+
+    setup.show();
 
     return app.exec();
 }

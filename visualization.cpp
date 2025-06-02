@@ -157,3 +157,37 @@ void NodeCanvas::zoomOut() {
 }
 
 NodeCanvas::~NodeCanvas(){}
+
+SimControlWindow::SimControlWindow(QWidget* parent) : QWidget(parent) {
+    setWindowTitle("P2P Simulator Setup");
+
+    clientSpin = new QSpinBox;
+    clientSpin->setRange(1, 1000);
+    clientSpin->setValue(100);
+
+    neighborSpin = new QSpinBox;
+    neighborSpin->setRange(1,10);
+    neighborSpin->setValue(5);
+
+    cacheSpin = new QSpinBox;
+    cacheSpin->setRange(1,500);
+    cacheSpin->setValue(10);
+
+    startBtn = new QPushButton("Start Simulation");
+
+    auto layout = new QVBoxLayout;
+    layout->addWidget(new QLabel("Number of CLients:"));
+    layout->addWidget(clientSpin);
+    layout->addWidget(new QLabel("Neighbors per Node:"));
+    layout->addWidget(neighborSpin);
+    layout->addWidget(new QLabel("Cache Size:"));
+    layout->addWidget(cacheSpin);
+    layout->addWidget(startBtn);
+
+    setLayout(layout);
+
+    connect(startBtn, &QPushButton::clicked,  [=]() {
+        emit simulationStarted(clientSpin->value(), neighborSpin->value(), cacheSpin->value());
+        this->close();
+    });
+}
