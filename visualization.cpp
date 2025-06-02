@@ -3,6 +3,8 @@
 
 NodeCanvas::NodeCanvas(QWidget* parent) : QWidget(parent) {
     setMinimumSize(1000, 1000);
+    slowFactor = 1;
+    scale = 1.0;
 }
 
 void NodeCanvas::setNet(const Network& net) {
@@ -21,9 +23,10 @@ void NodeCanvas::addPacket(int s, int f, int t, double st, double dt) {
     allPackets.push_back({s,f,t,st,dt});
 }
 
-void NodeCanvas::startVisualization(double tT) {
+void NodeCanvas::startVisualization(double tTime, int  slowF) {
     curTime = 0.0;
-    totalTime = tT;
+    totalTime = tTime;
+    slowFactor = slowF;
     if (!animationTimer) {
         animationTimer = new QTimer(this);
         connect(animationTimer, &QTimer::timeout, this, &NodeCanvas::updateAnimation);
@@ -32,7 +35,7 @@ void NodeCanvas::startVisualization(double tT) {
 }
 
 void NodeCanvas::updateAnimation() {
-    curTime += 0.3; // correspond to the timer interval
+    curTime += 0.03 / slowFactor; // correspond to the timer interval
     update();
     
     // stop when reach totalTime
@@ -47,6 +50,12 @@ void NodeCanvas::updateAnimation() {
 void NodeCanvas::paintEvent(QPaintEvent*) {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
+
+    // center the scene
+    painter.translate(width() / 2, height() / 2);
+    painter.scale(scale, scale);
+    painter.translate(-width() / 2, -height() / 2);
+    painter.translate(panOffset);
 
     // draw nodes
     painter.setPen(Qt::black);
@@ -88,5 +97,63 @@ void NodeCanvas::paintEvent(QPaintEvent*) {
 }
 
 
+void NodeCanvas::togglePause() {
+    if (!animationTimer) return;
+    
+    if (animationTimer->isActive()) {
+        animationTimer->stop();
+    }
+    else {
+        animationTimer->start(30);
+    }
+}
+
+void NodeCanvas::keyPressEvent(QKeyEvent* event) {
+    switch (event->key()) {
+        case Qt::Key_Plus:
+        case Qt::Key_Equal:
+            zoomIn();
+            break;
+        case Qt::Key_Minus:
+            zoomOut();
+            break;
+        case Qt::Key_Space:
+            togglePause();
+            break;
+        case Qt::Key_Left:
+            panOffset.rx() += 20;
+            update();
+            break;
+        case Qt::Key_Right:
+            panOffset.rx() -= 20;
+            update();
+            break;
+        case Qt::Key_Up:
+            panOffset.ry() += 20;
+            update();
+            break;
+        case Qt::Key_Down:
+            panOffset.ry() -= 20;
+            update();
+            break;
+        default:
+            QWidget::keyPressEvent(event);
+            break;
+    }
+}
+
+void NodeCanvas::zoomIn() {
+    if (scale < 5.0) {
+        scale *= 1.1;
+        update();
+    }
+}
+
+void NodeCanvas::zoomOut() {
+    if (scale > 0.2) {
+        scale /= 1.1;
+        update();
+    }
+}
 
 NodeCanvas::~NodeCanvas(){}
