@@ -21,5 +21,7 @@ int main(int argc, char* argv[]) {
     Simulation s(n, &canvas);
     s.run();
 
+    canvas.startVisualization();
+
     return app.exec();
 }

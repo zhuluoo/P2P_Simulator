@@ -61,8 +61,11 @@ void Network:: init(int numC, int numN, int bufSize) {
             nodes[i]->addNeighbor(neighborId);
             nodes[neighborId]->addNeighbor(i);
             
-            matrix[i][neighborId] = distance(nodes[i] , nodes[neighborId]);
-            matrix[neighborId][i] = distance(nodes[i] , nodes[neighborId]);
+            double d = distance(nodes[i] , nodes[neighborId]);
+            double dMax = std::sqrt(2.0) * numClient * 10;
+            double rate = 20.0 + (100.0 - 20.0) * (1.0 - std::min(d, dMax) / dMax);
+            matrix[i][neighborId] = rate;
+            matrix[neighborId][i] = rate;
         }
     }
 

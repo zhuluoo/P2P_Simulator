@@ -5,8 +5,9 @@ NodeCanvas::NodeCanvas(QWidget* parent) : QWidget(parent) {
     setMinimumSize(1000, 1000);
 }
 
-
 void NodeCanvas::setNet(const Network& net) {
+    nodes.clear();
+    matrix.clear();
     for ( const Node* pn : net.nodes) {
         nodes.push_back({pn->getid(), pn->getx(), pn->gety()});
     }
@@ -16,42 +17,30 @@ void NodeCanvas::setNet(const Network& net) {
     update();  // trigger rapaint
 }
 
-
-void NodeCanvas::startPacket(int from, int to, int seq) {
-    activePackets.push_back({from, to, 0.0});  // add a new packet to be animated
-
-    // Creator a timer if one doesn't exist yet
-    if(!animationTimer) {
-        animationTimer = new QTimer(this);
-        // call updateAnimation when timer times out
-        connect(animationTimer, &QTimer::timeout, this, &NodeCanvas::updateAnimation);
-        animationTimer->start(10);  // every 10ms
-    }
+void NodeCanvas::addPacket(int s, int f, int t, double st, double dt) {
+    allPackets.push_back({s,f,t,st,dt});
 }
 
+void NodeCanvas::startVisualization(double tT) {
+    curTime = 0.0;
+    totalTime = tT;
+    if (!animationTimer) {
+        animationTimer = new QTimer(this);
+        connect(animationTimer, &QTimer::timeout, this, &NodeCanvas::updateAnimation);
+    }
+    animationTimer->start(30); // fresh frequency: 30ms
+}
 
 void NodeCanvas::updateAnimation() {
-    bool anyRemaining = false;
-
-    for(auto& pkt : activePackets) {
-        pkt.progress += 0.02;  //  how fast the packet moves
-        if(pkt.progress < 1.0) anyRemaining = true;
-    }
-
-    // remove if transmission is done (progress >= 1.0)
-    activePackets.erase(
-        std::remove_if(activePackets.begin(), activePackets.end(),
-            [](const AnimatedPacket& pkt){ return pkt.progress >= 1.0;}),
-        activePackets.end());
-
-    // if there are no more packets, stop timer
-    if (!anyRemaining && animationTimer) {
+    curTime += 0.3; // correspond to the timer interval
+    update();
+    
+    // stop when reach totalTime
+    if (curTime >= totalTime && animationTimer) {
         animationTimer->stop();
         delete animationTimer;
         animationTimer = nullptr;
     }
-
-    update();
 }
 
 
@@ -69,6 +58,10 @@ void NodeCanvas::paintEvent(QPaintEvent*) {
         painter.drawText(node.x + 10, node.y - 10, QString::number(node.id));
     }
 
+    // draw Server
+    painter.setBrush(Qt::magenta);
+    painter.drawEllipse(QPoint(static_cast<int>(nodes[0].x), static_cast<int>(nodes[0].y)), 10, 10);
+
     // draw edges
     painter.setPen(QPen(Qt::gray, 1));
     for (size_t i = 0; i < matrix.size(); ++i) {
@@ -81,15 +74,19 @@ void NodeCanvas::paintEvent(QPaintEvent*) {
 
     // draw animated packets
     painter.setBrush(Qt::red);
-    for (const AnimatedPacket& pkt : activePackets) {
-        const GuiNode& a = nodes[pkt.fromId];
-        const GuiNode& b = nodes[pkt.toId];
-        double x = a.x + (b.x - a.x) * pkt.progress;
-        double y = a.y + (b.y - a.y) * pkt.progress;
-        painter.drawEllipse(QPointF(x, y), 4, 4);
+    for (const AnimatedPacket& pkt : allPackets) {
+        if (curTime >= pkt.startTime && curTime <= pkt.deliveryTime) {
+            double progress = (curTime - pkt.startTime) / (pkt.deliveryTime - pkt.startTime);
+            const GuiNode& a = nodes[pkt.fromId];
+            const GuiNode& b = nodes[pkt.toId];
+            double x = a.x + (b.x - a.x) * progress;
+            double y = a.y + (b.y - a.y) * progress;
+            painter.drawEllipse(QPointF(x, y), 4, 4);
+        }
     }
 
 }
+
 
 
 NodeCanvas::~NodeCanvas(){}

@@ -64,8 +64,8 @@ void Simulation:: run(double t) {
                     transmissionQueue.push_back({bestNeighbor, cid, targetBlock, curTime + bestDelay});
                     requestedBlocks[cid].insert(needed);
 
-                    // Trigger animation (only if canvas exists)
-                    if (canvas) canvas->startPacket(bestNeighbor, cid, targetBlock.seqNum);
+                    // add to visualization (only if canvas exists)
+                    if (canvas) canvas->addPacket(targetBlock.seqNum, bestNeighbor, cid, curTime, curTime + bestDelay);
                 }
             }
 

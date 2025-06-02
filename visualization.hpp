@@ -11,27 +11,34 @@ struct GuiNode {
 };
 
 struct AnimatedPacket {
+    int seq;
     int fromId;
     int toId;
-    double progress;  // from 0.0 to 1.0
+    double startTime;
+    double deliveryTime;
 };
 
 class NodeCanvas : public QWidget {
     Q_OBJECT
+
 public:
     explicit NodeCanvas(QWidget* parent = nullptr);
     ~NodeCanvas();
-
     void setNet(const Network& net);  // get nodes and adjacency matrix
+    void addPacket(int seq, int fromId, int toId, double startTime, double deliveryTime);
+    void startVisualization(double totalTime = 100.0);
 
-    void startPacket(int from, int to, int seq);  //Starts an animated packet from node from to node to
 protected:
     void paintEvent(QPaintEvent* event) override;  // paint function
 
+private slots:
     void updateAnimation();  // move active packets forward
+
 private:
     std::vector<GuiNode> nodes;
     std::vector<std::vector<double>> matrix; // adjaceney matrix
-    std::vector<AnimatedPacket> activePackets;  // store transmission packet
+    std::vector<AnimatedPacket> allPackets;  // store transmission packet
     QTimer* animationTimer = nullptr;
+    double curTime;
+    double totalTime;
 };
