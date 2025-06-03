@@ -167,7 +167,7 @@ void NodeCanvas::zoomOut() {
 NodeCanvas::~NodeCanvas(){}
 
 SimControlWindow::SimControlWindow(QWidget* parent) : QWidget(parent) {
-    setWindowTitle("P2P Simulator Setup");
+    setWindowTitle("P2P模拟器设置");
 
     clientSpin = new QSpinBox;
     clientSpin->setRange(1, 1000);
@@ -181,14 +181,14 @@ SimControlWindow::SimControlWindow(QWidget* parent) : QWidget(parent) {
     cacheSpin->setRange(1,500);
     cacheSpin->setValue(10);
 
-    startBtn = new QPushButton("Start Simulation");
+    startBtn = new QPushButton("模拟开始");
 
     auto layout = new QVBoxLayout;
-    layout->addWidget(new QLabel("Number of CLients:"));
+    layout->addWidget(new QLabel("客户端数量:"));
     layout->addWidget(clientSpin);
-    layout->addWidget(new QLabel("Neighbors per Node:"));
+    layout->addWidget(new QLabel("邻居数量"));
     layout->addWidget(neighborSpin);
-    layout->addWidget(new QLabel("Cache Size:"));
+    layout->addWidget(new QLabel("缓存大小"));
     layout->addWidget(cacheSpin);
     layout->addWidget(startBtn);
 
@@ -204,15 +204,15 @@ void NodeCanvas::showDelayDialog() {
     if (!net_) return;
 
     QDialog dialog(this);
-    dialog.setWindowTitle("Check Client Delay");
+    dialog.setWindowTitle("查看延迟");
 
     QVBoxLayout* layout = new QVBoxLayout(&dialog);
 
-    QLabel* label = new QLabel("Client ID:");
+    QLabel* label = new QLabel("客户ID:");
     QSpinBox* spin = new QSpinBox;
     spin->setRange(1, net_->nodes.size() - 1);
 
-    QPushButton* checkBtn = new QPushButton("Check");
+    QPushButton* checkBtn = new QPushButton("查看");
     QLabel* resultLabel = new QLabel("");
 
     layout->addWidget(label);
@@ -225,7 +225,7 @@ void NodeCanvas::showDelayDialog() {
         Node* client = net_->nodes[cid];
         const auto& playedBlk = dynamic_cast<Client*>(client) -> getPlayedBlk();
         if (playedBlk.empty()) {
-            resultLabel->setText("No blocks played.");
+            resultLabel->setText("没有播放数据");
             return;
         }
 
@@ -235,7 +235,7 @@ void NodeCanvas::showDelayDialog() {
             sum += playedBlk[i] - expected;
         }
         double avg = sum / playedBlk.size();
-        resultLabel->setText(QString("Average delay: %1 s").arg(avg, 0, 'f', 4));
+        resultLabel->setText(QString("平均延迟: %1 s").arg(avg, 0, 'f', 4));
     });
 
     dialog.exec();
@@ -248,8 +248,8 @@ void NodeCanvas::promptNodeExit() {
     bool ok;
     int cid = QInputDialog::getInt(
         this,
-        "Remove Npde",
-        "Enter Client ID to remove:",
+        "节点退出",
+        "输入退出客户ID",
         1, 1, net_->nodes.size() - 1, 1, &ok);
     
     if (!ok) return;
