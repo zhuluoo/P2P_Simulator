@@ -14,7 +14,9 @@ public:
     int numNeighbor = 0;  // default value, in real case, it's max number of neighbors actually
 
     Network(){};
+    ~Network();
 	void init(int numClient, int numNeighbor, int bufSize);  //initialization
 	double distance(const Node* const a, const Node* const b); //compute distance between nodes
-    ~Network();
+
+    void nodeExit(int cid);
 };

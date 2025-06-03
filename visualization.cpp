@@ -1,4 +1,5 @@
 #include "visualization.hpp"
+#include "simulation.hpp"
 #include <QPainter>
 
 NodeCanvas::NodeCanvas(QWidget* parent) : QWidget(parent) {
@@ -7,7 +8,7 @@ NodeCanvas::NodeCanvas(QWidget* parent) : QWidget(parent) {
     scale = 1.0;
 }
 
-void NodeCanvas::setNet(const Network& net) {
+void NodeCanvas::setNet(Network& net) {
     nodes.clear();
     matrix.clear();
     net_ = &net;
@@ -140,6 +141,9 @@ void NodeCanvas::keyPressEvent(QKeyEvent* event) {
         case Qt::Key_D:
             showDelayDialog();
             break;
+        case Qt::Key_E:
+            promptNodeExit();
+            break;
         default:
             QWidget::keyPressEvent(event);
             break;
@@ -235,4 +239,34 @@ void NodeCanvas::showDelayDialog() {
     });
 
     dialog.exec();
+}
+
+void NodeCanvas::promptNodeExit() {
+    if (!net_) return;
+    
+    // let user input cid
+    bool ok;
+    int cid = QInputDialog::getInt(
+        this,
+        "Remove Npde",
+        "Enter Client ID to remove:",
+        1, 1, net_->nodes.size() - 1, 1, &ok);
+    
+    if (!ok) return;
+
+    // remove node
+    net_->nodeExit(cid);
+
+    // reset
+    for (const auto& p : net_->nodes) p->restart();
+
+    allPackets.clear();
+    curTime = 0.0;
+
+    // rerun simualtion
+    Simulation sim(*net_, this);
+    sim.run();
+
+    // rerun visualization
+    startVisualization();
 }

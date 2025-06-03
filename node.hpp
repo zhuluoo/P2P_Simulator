@@ -1,7 +1,7 @@
 #pragma once
 
 #include<vector>
-#include<string>
+#include<algorithm>
 #include "videodata.hpp"
 
 class Node {
@@ -13,8 +13,10 @@ protected:
 public:
 	Node(int id, double x, double y, int bufSize);   //configuration
 	virtual ~Node() = default;
+    virtual void restart() = 0;
     
     virtual void addNeighbor(int) = 0;
+    virtual void delNeighbor(int) = 0;  // if parameter is -1, delete all neighbor
     virtual void recvBlock(const DataBlock&) = 0;
 
     virtual int getid() const = 0;
@@ -29,8 +31,10 @@ public:
 class Server: public Node {
 public:
 	Server(int id, double x, double y, int bufSize);   //configuration
+    void restart() override;
 
     void addNeighbor(int) override;
+    void delNeighbor(int) override;
     void recvBlock(const DataBlock&) override;
 
     int getid() const override;
@@ -47,10 +51,15 @@ private:
     int nextPlaySeq = 0;
     int neededSeq = 0;
     std::vector<double> playedBlocks;  // for computing delay
+    double delay = 0;
+
+    void computeDelay();
 public:
 	Client(int id, double x, double y, int bufSize);   //configuration
+    void restart() override;
 
     void addNeighbor(int) override;
+    void delNeighbor(int) override;
     void recvBlock(const DataBlock&) override;
 
     int getid() const override;

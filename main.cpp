@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
 
             canvas.show();
             
-            QLabel* help = new QLabel("Space: Pause | + / -: Zoom | Arrows: Move D: Check client delay");
+            QLabel* help = new QLabel("Space: Pause | + / -: Zoom | Arrows: Move D: Check client delay E: Node Exit");
             help->setStyleSheet("background-color: rgba(255,255,255,200); padding: 4px;");
             help->move(10, 100);
             help->setParent(&canvas);

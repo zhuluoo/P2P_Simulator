@@ -77,6 +77,16 @@ double Network:: distance(const Node* const a, const Node* const b) {
     return distance;
 }
 
+void Network::nodeExit(int cid) {
+    if (cid < 1 || cid >= nodes.size()) return;
+    for (const int nid : nodes[cid]->getNeighbor()) {
+        nodes[nid]->delNeighbor(cid);
+        matrix[cid][nid] = 0;
+        matrix[nid][cid] = 0;
+    }
+    nodes[cid]->delNeighbor(-1);  // delete all neighbors
+}
+
 Network:: ~Network() {
     for (Node* ptr : nodes) {
         delete ptr;

@@ -10,6 +10,7 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QDialog>
+#include <QInputDialog>
 
 struct GuiNode {
     int id;
@@ -30,11 +31,13 @@ class NodeCanvas : public QWidget {
 public:
     explicit NodeCanvas(QWidget* parent = nullptr);
     ~NodeCanvas();
-    void setNet(const Network& net);  // get nodes and adjacency matrix
+    void setNet(Network& net);  // get nodes and adjacency matrix
     void addPacket(int seq, int fromId, int toId, double startTime, double deliveryTime);
     void startVisualization(double totalTime = 100.0, int slowFactor = 100);
 
     void showDelayDialog();
+
+    void promptNodeExit();
 
 public slots:
     void togglePause();  // press Spacebar to pause and continue
@@ -50,7 +53,7 @@ private slots:
     void updateAnimation();  // move active packets forward
 
 private:
-    const Network* net_ = nullptr;
+    Network* net_ = nullptr;
     std::vector<GuiNode> nodes;
     std::vector<std::vector<double>> matrix; // adjaceney matrix
     std::vector<AnimatedPacket> allPackets;  // store transmission packet
