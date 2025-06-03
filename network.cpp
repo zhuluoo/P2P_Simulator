@@ -79,12 +79,47 @@ double Network:: distance(const Node* const a, const Node* const b) {
 
 void Network::nodeExit(int cid) {
     if (cid < 1 || cid >= nodes.size()) return;
+
+    // get the exiting node's neighbors
+    std::vector<int> oldNeighbors = nodes[cid]->getNeighbor();
+
+    // disconnect the node form the neighbors
     for (const int nid : nodes[cid]->getNeighbor()) {
         nodes[nid]->delNeighbor(cid);
         matrix[cid][nid] = 0;
         matrix[nid][cid] = 0;
     }
     nodes[cid]->delNeighbor(-1);  // delete all neighbors
+
+    // reconnect the former neighbors
+    for (int nid : oldNeighbors) {
+        while (nodes[nid]->getNumNeighbor() < numNeighbor) {
+            int best = -1;
+            double bestDist = std::numeric_limits<double>::max();
+
+            for (int i = 1; i < nodes.size(); ++i) {
+                if (i == nid || matrix[nid][i] != 0 || nodes[i]->getNumNeighbor() >= numNeighbor) continue;
+
+                double d = distance(nodes[nid], nodes[i]);
+                if (d < bestDist) {
+                    best = i;
+                    bestDist = d;
+                }
+            }
+            
+            if (best == -1) break;
+
+            // add bidirectional connection
+            nodes[nid]->addNeighbor(best);
+            nodes[best]->addNeighbor(nid);
+
+            double d = distance(nodes[nid] , nodes[best]);
+            double dMax = std::sqrt(2.0) * numClient * 10;
+            double rate = 20.0 + (100.0 - 20.0) * (1.0 - std::min(d, dMax) / dMax);
+            matrix[nid][best] = d;
+            matrix[best][nid] = d;
+        }
+    }
 }
 
 Network:: ~Network() {
