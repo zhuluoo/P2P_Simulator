@@ -30,3 +30,7 @@ This project simulates a peer-to-peer (P2P) video streaming network, where one s
 qmake viz.pro
 make
 ./viz
+
+ 
+⚠️  This project was completed as a course assignment.
+   It is shared for learning and inspiration purposes only.
